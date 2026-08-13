@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-#
-# macOS USB Setup (Linux) - erstellt einen bootfaehigen macOS-Installations-Stick.
-# Gleicher Ablauf wie setup.exe: Hardware-Scan -> lauffaehige Versionen -> Auswahl
-# -> USB waehlen -> schreiben. Eigene Implementierung; extern sind nur die Daten
-# selbst (macOS-Recovery von Apple, OpenCore/Kext-Binaries von ihren Projekten).
-#
+
 set -euo pipefail
 export LC_ALL=C
 
@@ -17,7 +12,6 @@ readonly OSRECOVERY="http://osrecovery.apple.com"
 readonly UA="InternetRecovery/1.0"
 readonly MLB_ZERO="00000000000000000"
 
-# name : marketing : recoveryVersion : darwin : board-id : os-type : smbiosDesktop : smbiosLaptop
 readonly RELEASES=(
   "Tahoe:26:latest:25:Mac-27AD2F918AE68F61:latest:MacPro7,1:MacBookPro16,1"
   "Sequoia:15:15.7.4:24:Mac-0CFF9C7C2B63DF8D:default:MacPro7,1:MacBookPro16,1"
@@ -43,7 +37,6 @@ step() { printf '%s==>%s %s\n' "$BOLD" "$RST" "$*"; log "STEP $*"; }
 info() { printf '    %s\n' "$*"; log "INFO $*"; }
 warn() { printf '%s[!]%s %s\n' "$YEL" "$RST" "$*"; log "WARN $*"; }
 
-# die <stufe> <meldung> [empfehlung]
 die() {
   printf '\n%s[Fehler: %s]%s %s\n' "$RED" "$1" "$RST" "$2" >&2
   [[ -n "${3:-}" ]] && printf '    Empfehlung: %s\n' "$3" >&2
@@ -76,8 +69,6 @@ require_tools() {
       "Installieren, z. B.: Debian/Ubuntu 'apt install curl util-linux pciutils gdisk dosfstools python3', Fedora 'dnf install ...', Arch 'pacman -S ...'."
   fi
 }
-
-# ---------------------------------------------------------------- Hardware-Scan
 
 CPU_VENDOR=""; CPU_FAMILY=0; CPU_MODEL=0; CPU_CORES=1; CPU_BRAND=""
 GPU_VEN=(); GPU_DEV=(); HAS_INTEL_IGPU=0; HAS_MODERN_NVIDIA=0
@@ -124,9 +115,6 @@ scan_hardware() {
   info "RAM: $(( MEM_BYTES / 1073741824 )) GB"
 }
 
-# --------------------------------------------------------------- Kompatibilitaet
-
-# level_from <darwin> <min> <sup> <exp> -> supported|experimental|unsupported
 level_from() {
   local d=$1 min=$2 sup=$3 exp=$4
   if   (( d < min ));               then echo unsupported
@@ -231,8 +219,6 @@ evaluate_release() {
 
   R_LEVEL="$level"; R_NOTES="${notes%$'\n'}"
 }
-
-# ----------------------------------------------------------------- Auswahl (TUI)
 
 SEL_IDX=-1
 choose_version() {
@@ -571,8 +557,6 @@ PY
   fi
   info "Recovery verifiziert"
 }
-
-# ------------------------------------------------------------------------ Abschluss
 
 finish() {
   local name; IFS=: read -r name _ <<<"$SELECTED_RELEASE"
